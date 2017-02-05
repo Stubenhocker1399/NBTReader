@@ -12,26 +12,104 @@ namespace NBTReaderConsole
     {     
         static void Main(string[] args)
         {
-            var worldfolder = "C:\\Users\\Chris\\AppData\\LocalLow\\Facepunch Studios\\Chunks\\Worlds\\testworldblocks";
-            var file = "debugDecompressedChunks.0.0";
-            //var file = "level.dat";
-            if (!File.Exists(worldfolder + "\\" + file))
-                Console.WriteLine("Couldn't locate Minecraft World to import.");
-            else
+            if(args.Count()<=1 || args.Count()>= 5)
             {
-                //byte[] leveldatcompressed = File.ReadAllBytes(worldfolder + "\\" + file);
-                //byte[] leveldat = Decompress(leveldatcompressed);
-                byte[] leveldat = File.ReadAllBytes(worldfolder + "\\" + file);
-                Console.WriteLine(BitConverter.ToString(leveldat));
-                Console.WriteLine(Encoding.Default.GetString(leveldat));
-                Console.WriteLine("");
+                printUsageInfo();
+            }else {                 
+                var file = args[1];
+                if (!File.Exists(file))
+                    Console.WriteLine("Could not locate NBTFile.");
+                else
+                {
+                    byte[] nbtfile = { };
+                    if (args[0] == "/d")
+                    {
+                        nbtfile = File.ReadAllBytes(file);
+                    }
+                    if (args[0] == "/c")
+                    {
+                        try
+                        {
+                            nbtfile = Decompress(File.ReadAllBytes(file));
+                        }
+                        catch(System.IO.InvalidDataException e)
+                        {
+                            Console.WriteLine("Could not decompress the file, make sure the given file is a gzip compressed file or change /c to /d for an already decompressed file.");
+                            Console.WriteLine(e.Message);
+                            return;
+                        }
+                    }
 
-                var nbt = NBTReader.readNBT(leveldat);
-                //var inner = (double) nbt.tree["Data"]["Player"]["Pos"][0];
-                ;
+                    if (args.Count()>=3)
+                    { 
+                        if (args[2] == "/h")
+                        {
+                            Console.WriteLine(BitConverter.ToString(nbtfile));
+                            Console.WriteLine();
+                        }
+                        if (args[2] == "/s")
+                        {
+                            Console.WriteLine(Encoding.Default.GetString(nbtfile));
+                            Console.WriteLine();
+                        }
+                    }
+                    if (args.Count() == 4)
+                    {
+                        if (args[3] == "/h")
+                        {
+                            Console.WriteLine(BitConverter.ToString(nbtfile));
+                            Console.WriteLine();
+                        }
+                        if (args[3] == "/s")
+                        {
+                            Console.WriteLine(Encoding.Default.GetString(nbtfile));
+                            Console.WriteLine();
+                        }
+                    }
+                    try
+                    {
+                        /*******************************************************************************************************/
+
+                        //Here is where the magic happens
+                        var nbt = NBTReader.readNBT(nbtfile);
+
+                        //Example of accessing the player x position inside the level.dat file:
+
+                        //var inner = (double) nbt.tree["Data"]["Player"]["Pos"][0];  
+                        //Console.WriteLine(inner);
+
+                        /*******************************************************************************************************/
+                        Console.WriteLine("Sucessfully parsed the nbt file.");
+                    }
+                    catch(System.Exception e)
+                    {
+                        Console.WriteLine("Error while trying to parse the NBT file.");
+                        Console.WriteLine(e.Message);
+                    }                  
+                    ;                
+                }
             }
+#if DEBUG
             Console.ReadKey();
+#endif
         }
+
+        private static void printUsageInfo()
+        {
+            Console.WriteLine("Reads NBT files.");
+            Console.WriteLine();
+            Console.WriteLine("Usage:");
+            Console.WriteLine("NBTReaderConsole.exe [/c|/d] [path]NBTFile [/h] [/s]");
+            Console.WriteLine();
+            Console.WriteLine("Required:");
+            Console.WriteLine("  [path]NBTFile  The full path to the NBTFile to be read.");
+            Console.WriteLine("  /c             The given file is gzip compressed.");
+            Console.WriteLine("  /d             The given file is decompressed.");
+            Console.WriteLine("Optional:");
+            Console.WriteLine("  /h             Print the raw file in hex format.");
+            Console.WriteLine("  /s             Print the raw file as a string.");
+        }
+
         static byte[] Decompress(byte[] gzip)
         {
             // Create a GZIP stream with decompression mode.

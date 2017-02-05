@@ -46,8 +46,8 @@ namespace NBTReaderConsole
         {
             br.BaseStream.Seek(0, SeekOrigin.Begin);
             var tag = (TAG)br.ReadByte();
-            if (tag != TAG.Compound)
-                throw new Exception();
+            //if (tag != TAG.Compound)
+            //    throw new Exception();
             tree = (NBTCompoundTag)NBTTag.ReadTag(br, true, tag);
         }
     }
