@@ -66,8 +66,10 @@ namespace NBTReaderConsole
                             Console.WriteLine();
                         }
                     }
+#if RELEASE
                     try
                     {
+#endif
                         /*******************************************************************************************************/
 
                         //Here is where the magic happens
@@ -78,15 +80,22 @@ namespace NBTReaderConsole
                         //var inner = (double) nbt.tree["Data"]["Player"]["Pos"][0];  
                         //Console.WriteLine(inner);
 
+                        //Example of accessing bigtest.nbt 
+
+                        var intTest = (int)nbt.tree["intTest"];
+                        var floatTest = (float)nbt.tree["floatTest"];
+                        var stringtest = (string)nbt.tree["stringTest"];
+
                         /*******************************************************************************************************/
                         Console.WriteLine("Sucessfully parsed the nbt file.");
-                    }
+#if RELEASE
+                }
                     catch(System.Exception e)
                     {
                         Console.WriteLine("Error while trying to parse the NBT file.");
                         Console.WriteLine(e.Message);
-                    }                  
-                    ;                
+                    }             
+#endif   
                 }
             }
 #if DEBUG

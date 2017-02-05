@@ -46,8 +46,8 @@ namespace NBTReaderConsole
         {
             br.BaseStream.Seek(0, SeekOrigin.Begin);
             var tag = (TAG)br.ReadByte();
-            //if (tag != TAG.Compound)
-            //    throw new Exception();
+            if (tag != TAG.Compound)
+                throw new Exception();
             tree = (NBTCompoundTag)NBTTag.ReadTag(br, true, tag);
         }
     }
@@ -277,9 +277,10 @@ namespace NBTReaderConsole
         public static NBTTag Read(BinaryReader reader)
         {
             int length = BigEndianHelper.ReadBigEndian<short>(reader);
+
             return new NBTStringTag
             {
-                value = new string(reader.ReadChars(length))
+                value = System.Text.Encoding.UTF8.GetString(reader.ReadBytes(length))
             };
         }
 
