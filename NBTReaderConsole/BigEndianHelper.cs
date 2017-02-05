@@ -4,10 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Reflection;
 
-namespace NBTReaderConsole
+namespace NBTReaderConsole.Source
 {
     public static class BigEndianHelper
     {
@@ -21,13 +20,14 @@ namespace NBTReaderConsole
                 Size = Marshal.SizeOf(type);
                 if (type == typeof(byte))
                 {
-                    ConvertAction = (Func<byte[], int, byte>) ((buffer, index) => buffer[index]);
+                    ConvertAction = (Func<byte[], int, byte>)((buffer, index) => buffer[index]);
                     return;
                 }
 
-                ConvertAction = typeof(BitConverter)
-                    .GetMethod($"To{type.Name}", BindingFlags.Static | BindingFlags.Public)
-                    .CreateDelegate(typeof(Func<,,>).MakeGenericType(typeof(byte[]), typeof(int), type));
+                var method = typeof(BitConverter)
+                    .GetMethod($"To{type.Name}", BindingFlags.Static | BindingFlags.Public);
+                var delegType = typeof(Func<,,>).MakeGenericType(typeof(byte[]), typeof(int), type);
+                ConvertAction = Delegate.CreateDelegate(delegType, method);
             }
         }
 

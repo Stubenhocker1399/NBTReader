@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NBTReaderConsole.Source;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using static NBTReaderConsole.NBTReader;
 
 namespace NBTReaderConsole
@@ -36,7 +37,7 @@ namespace NBTReaderConsole
                 BinaryReader br = new BinaryReader(ms);
                 return new NBTTree(br);
             }
-        }        
+        }
     }
     public class NBTTree
     {
@@ -44,10 +45,10 @@ namespace NBTReaderConsole
         public NBTTree(BinaryReader br)
         {
             br.BaseStream.Seek(0, SeekOrigin.Begin);
-            var tag = (TAG) br.ReadByte();
+            var tag = (TAG)br.ReadByte();
             if (tag != TAG.Compound)
                 throw new Exception();
-            tree = (NBTCompoundTag) NBTTag.ReadTag(br, true, tag);
+            tree = (NBTCompoundTag)NBTTag.ReadTag(br, true, tag);
         }
     }
 
@@ -75,7 +76,7 @@ namespace NBTReaderConsole
 
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
-                var attrib = type.GetCustomAttribute<TagTypeAttribute>();
+                var attrib = (TagTypeAttribute)type.GetCustomAttributes(typeof(TagTypeAttribute), false).FirstOrDefault();
                 if (attrib == null) continue;
 
                 var baseType = type;
@@ -99,7 +100,7 @@ namespace NBTReaderConsole
                     continue;
                 }
 
-                var deleg = (ReadMethod) readMethod.CreateDelegate(typeof(ReadMethod));
+                var deleg = (ReadMethod)Delegate.CreateDelegate(typeof(ReadMethod), readMethod);
 
                 foreach (var tag in attrib.Types)
                 {
@@ -134,40 +135,40 @@ namespace NBTReaderConsole
 
         public static explicit operator byte(NBTTag tag)
         {
-            return ((NBTStructTag<byte>)tag).value;
+            return tag.GetConvertedValue<byte>();
         }
 
         public static explicit operator short(NBTTag tag)
         {
-            return ((NBTStructTag<short>)tag).value;
+            return tag.GetConvertedValue<short>();
         }
 
         public static explicit operator int(NBTTag tag)
         {
-            return ((NBTStructTag<int>)tag).value;
+            return tag.GetConvertedValue<int>();
         }
 
         public static explicit operator long(NBTTag tag)
         {
-            return ((NBTStructTag<long>)tag).value;
+            return tag.GetConvertedValue<long>();
         }
 
         public static explicit operator float(NBTTag tag)
         {
-            return ((NBTStructTag<float>)tag).value;
+            return tag.GetConvertedValue<float>();
         }
 
         public static explicit operator string(NBTTag tag)
         {
-            return ((NBTStringTag)tag).value;
+            return tag.GetConvertedValue<string>();
         }
 
         public static explicit operator double(NBTTag tag)
         {
-            return ((NBTStructTag<double>)tag).value;
+            return tag.GetConvertedValue<double>();
         }
 
-        public static explicit operator byte[](NBTTag tag)
+        public static explicit operator byte[] (NBTTag tag)
         {
             return ((NBTByteArrayTag)tag).value;
         }
@@ -189,6 +190,12 @@ namespace NBTReaderConsole
         {
             return type.ToString();
         }
+
+        internal virtual K GetConvertedValue<K>()
+            where K : IConvertible
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class NBTTag<T> : NBTTag
@@ -202,7 +209,7 @@ namespace NBTReaderConsole
     }
 
     public class NBTStructTag<T> : NBTTag<T>
-        where T : struct
+        where T : struct, IConvertible
     {
         public static NBTTag Read(BinaryReader reader)
         {
@@ -210,6 +217,11 @@ namespace NBTReaderConsole
             {
                 value = BigEndianHelper.ReadBigEndian<T>(reader)
             };
+        }
+
+        internal override K GetConvertedValue<K>()
+        {
+            return (K)Convert.ChangeType(value, typeof(K));
         }
     }
 
@@ -237,7 +249,7 @@ namespace NBTReaderConsole
 
     [TagType(TAG.Float)]
     public class NBTFloatTag : NBTStructTag<float> { }
-    
+
     [TagType(TAG.Double)]
     public class NBTDoubleTag : NBTStructTag<double> { }
 
@@ -270,6 +282,11 @@ namespace NBTReaderConsole
                 value = new string(reader.ReadChars(length))
             };
         }
+
+        internal override K GetConvertedValue<K>()
+        {
+            return (K)Convert.ChangeType(value, typeof(K));
+        }
     }
 
     [TagType(TAG.List)]
@@ -278,11 +295,11 @@ namespace NBTReaderConsole
         public static NBTTag Read(BinaryReader reader)
         {
             var list = new List<NBTTag>();
-            var tagid = (TAG) reader.ReadByte(); 
+            var tagid = (TAG)reader.ReadByte();
             var length = BigEndianHelper.ReadBigEndian<int>(reader);
-            for (var i=0;i<length;i++)
+            for (var i = 0; i < length; i++)
             {
-                var tag = ReadTag(reader, false,tagid);
+                var tag = ReadTag(reader, false, tagid);
                 list.Add(tag);
             }
             return new NBTListTag
