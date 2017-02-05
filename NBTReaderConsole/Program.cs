@@ -96,8 +96,11 @@ namespace NBTReaderConsole
                         //    blocks = (byte[])sections[i]["Blocks"];
                         //    yLevel = (int)sections[i]["Y"];
                         //}
+                       
+                        printTree(0, nbt.tree);
+                            
                         /*******************************************************************************************************/
-                        Console.WriteLine("Sucessfully parsed the nbt file.");
+                        Console.WriteLine("Successfully parsed the nbt file.");
 #if RELEASE
                 }
                     catch(System.Exception e)
@@ -113,9 +116,38 @@ namespace NBTReaderConsole
 #endif
         }
 
+        private static void printTree(int depth, NBTTag<List<NBTTag>> compTag)
+        {
+            string depthChar = "   ";
+            string depthString = "";
+            for(int i=0;i<depth;i++)
+            {
+                depthString = string.Concat(depthString, depthChar);
+            }
+            foreach(NBTTag tag in compTag.value)
+            {
+                if(tag.type==NBTReader.TAG.Compound||tag.type==NBTReader.TAG.List)
+                    Console.WriteLine(depthString + tag + " " + tag.name);
+                else
+                    Console.WriteLine(depthString + tag);
+                if (tag.type==NBTReader.TAG.Compound)
+                {
+                    printTree(depth + 1, (NBTCompoundTag)tag);
+                }
+                if (tag.type==NBTReader.TAG.List)
+                {
+                    printTree(depth + 1, (NBTListTag)tag);
+                }
+            }
+            if (depth==0)
+            {
+                Console.WriteLine();
+            }
+        }
+        
         private static void printUsageInfo()
         {
-            Console.WriteLine("Reads NBT files.");
+            Console.WriteLine("Reads NBT files and prints it as a simple tree structure.");
             Console.WriteLine();
             Console.WriteLine("Usage:");
             Console.WriteLine("NBTReaderConsole.exe [/c|/d] [path]NBTFile [/h] [/s]");
