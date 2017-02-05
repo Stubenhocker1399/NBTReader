@@ -82,9 +82,9 @@ namespace NBTReaderConsole
 
                         //Example of accessing bigtest.nbt 
 
-                        var intTest = (int)nbt.tree["intTest"];
-                        var floatTest = (float)nbt.tree["floatTest"];
-                        var stringtest = (string)nbt.tree["stringTest"];
+                        //var intTest = (int)nbt.tree["intTest"];
+                        //var floatTest = (float)nbt.tree["floatTest"];
+                        //var stringtest = (string)nbt.tree["stringTest"];
 
                         /*******************************************************************************************************/
                         Console.WriteLine("Sucessfully parsed the nbt file.");
