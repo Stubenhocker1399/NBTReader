@@ -86,6 +86,16 @@ namespace NBTReaderConsole
                         //var floatTest = (float)nbt.tree["floatTest"];
                         //var stringtest = (string)nbt.tree["stringTest"];
 
+                        //Example of accessing DecompressedChunk0.0Flatworld.nbt
+                        //var sections = (NBTListTag)nbt.tree["Level"]["Sections"];
+                        //var sectionscount = sections.value.Count();
+                        //int yLevel = 0;
+                        //byte[] blocks = { 0 };
+                        //for (var i = 0; i < sectionscount; i++)
+                        //{
+                        //    blocks = (byte[])sections[i]["Blocks"];
+                        //    yLevel = (int)sections[i]["Y"];
+                        //}
                         /*******************************************************************************************************/
                         Console.WriteLine("Sucessfully parsed the nbt file.");
 #if RELEASE
